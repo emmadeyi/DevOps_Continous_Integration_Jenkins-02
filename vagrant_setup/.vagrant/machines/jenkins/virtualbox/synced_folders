@@ -1,0 +1,1 @@
+{"virtualbox":{"/opt/scripts":{"guestpath":"/opt/scripts","hostpath":"C:/DevOps/scripts/bash_scripts","disabled":false,"__vagrantfile":true},"/vagrant":{"guestpath":"/vagrant","hostpath":"C:/DevOps/02 - Continous Integration with Jenkins/vagrant_setup","disabled":false,"__vagrantfile":true}}}

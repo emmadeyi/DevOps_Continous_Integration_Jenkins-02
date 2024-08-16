@@ -1,85 +1,102 @@
 Vagrant.configure("2") do |config|
 
     config.vm.synced_folder "C:\\DevOps\\scripts\\bash_scripts", "/opt/scripts"
-    
-    # Configure the scriptbox VM
-    config.vm.define "scriptbox" do |scriptbox|
-      scriptbox.vm.box = "geerlingguy/centos7"
-      scriptbox.vm.network "private_network", ip: "192.168.10.13"
-      scriptbox.vm.provider "virtualbox" do |vb|
-        vb.memory = "1024"
-      end
-    end
   
     # Configure the nexus VM
     config.vm.define "nexus" do |nexus|
-      nexus.vm.box = "geerlingguy/centos7"
+      # nexus.vm.box = "geerlingguy/centos7"
+      nexus.vm.box = "ubuntu/bionic64"
       nexus.vm.network "private_network", ip: "192.168.10.14"
         
       nexus.vm.provider "virtualbox" do |vb|
         vb.memory = "2048"
       end
-      
+
       # Provision Nexus on the nexus VM
-      nexus.vm.provision "shell", inline: <<-SHELL
+      # nexus.vm.provision "shell", inline: <<-SHELL
         #!/bin/bash
-        
+
         # Exit on any error
-        set -e
-        
-        # Install Java and wget
-        yum install -y java-1.8.0-openjdk.x86_64 wget
-        
-        # Create necessary directories
-        mkdir -p /opt/nexus/ /tmp/nexus/
-        
-        # Download Nexus
-        cd /tmp/nexus/
-        NEXUS_URL="https://download.sonatype.com/nexus/3/latest-unix.tar.gz"
-        wget -O nexus.tar.gz $NEXUS_URL
-        
-        # Extract the Nexus tarball
-        tar -xzvf nexus.tar.gz
-        NEXUS_DIR=$(tar -tzf nexus.tar.gz | head -1 | cut -f1 -d"/")
-        
-        # Move Nexus to the installation directory
-        mv $NEXUS_DIR/* /opt/nexus/
-        
-        # Clean up the temporary files
-        rm -rf /tmp/nexus/nexus.tar.gz /tmp/nexus/$NEXUS_DIR
-        
-        # Create a nexus user
-        useradd -r -d /opt/nexus -s /bin/false nexus
-        chown -R nexus:nexus /opt/nexus
-        
-        # Create systemd service file for Nexus
-        cat <<EOT > /etc/systemd/system/nexus.service
-        [Unit]
-        Description=Nexus Repository Manager
-        After=network.target
-        
-        [Service]
-        Type=forking
-        LimitNOFILE=65536
-        ExecStart=/opt/nexus/bin/nexus start
-        ExecStop=/opt/nexus/bin/nexus stop
-        User=nexus
-        Restart=on-failure
-        
-        [Install]
-        WantedBy=multi-user.target
-        EOT
-        
-        # Configure Nexus to run as the nexus user
-        echo 'run_as_user="nexus"' > /opt/nexus/bin/nexus.rc
-        
-        # Reload systemd to apply the new service file
-        systemctl daemon-reload
-        
-        # Start and enable Nexus service
-        systemctl start nexus
-        systemctl enable nexus
-      SHELL
+      #   set -e
+
+      #   # Variables
+      #   NEXUS_VERSION="3.57.0-01"  # Update with the latest version if needed
+      #   NEXUS_USER="nexus"
+      #   INSTALL_DIR="/opt/nexus"
+      #   DATA_DIR="/opt/sonatype-work"
+      #   DOWNLOAD_URL="https://download.sonatype.com/nexus/3/nexus-${NEXUS_VERSION}-unix.tar.gz"
+      #   JAVA_PACKAGE="openjdk-17-jdk"
+
+      #   # Update system and install Java
+      #   echo "Updating system and installing Java..."
+      #   sudo apt update && sudo apt upgrade -y
+      #   sudo apt install -y $JAVA_PACKAGE wget
+
+      #   # Create Nexus user if not exists
+      #   if ! id -u $NEXUS_USER > /dev/null 2>&1; then
+      #     echo "Creating Nexus user..."
+      #     sudo useradd -r -m -d $INSTALL_DIR -s /bin/bash $NEXUS_USER
+      #   fi
+
+      #   # Download and extract Nexus
+      #   echo "Downloading and installing Nexus..."
+      #   if [ ! -d "$INSTALL_DIR" ]; then
+      #     sudo mkdir -p $INSTALL_DIR
+      #   fi
+      #   if [ ! -d "$DATA_DIR" ]; then
+      #     sudo mkdir -p $DATA_DIR
+      #   fi
+      #   wget $DOWNLOAD_URL -O /tmp/nexus.tar.gz
+      #   if [ $? -eq 0 ]; then
+      #     sudo tar -xzf /tmp/nexus.tar.gz -C /opt
+      #     sudo mv /opt/nexus-${NEXUS_VERSION}/* $INSTALL_DIR/
+      #     sudo chown -R $NEXUS_USER:$NEXUS_USER $INSTALL_DIR $DATA_DIR
+      #   else
+      #     echo "Failed to download Nexus. Exiting."
+      #     exit 1
+      #   fi
+
+      #   # Configure Nexus to run as a service
+      #   echo "Configuring Nexus service..."
+      #   sudo bash -c "cat > /etc/systemd/system/nexus.service <<-EOF
+      #   [Unit]
+      #   Description=Nexus Repository Manager
+      #   After=network.target
+
+      #   [Service]
+      #   Type=forking
+      #   LimitNOFILE=65536
+      #   Environment='INSTALL4J_JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64'
+      #   ExecStart=${INSTALL_DIR}/bin/nexus start
+      #   ExecStop=${INSTALL_DIR}/bin/nexus stop
+      #   User=${NEXUS_USER}
+      #   Restart=on-failure
+
+      #   [Install]
+      #   WantedBy=multi-user.target
+      #   EOF"
+
+      #   # Enable and start the Nexus service
+      #   echo "Enabling and starting Nexus service..."
+      #   sudo systemctl daemon-reload
+      #   sudo systemctl enable nexus.service
+      #   sudo systemctl start nexus.service
+
+      #   # Check Nexus service status
+      #   echo "Checking Nexus service status..."
+      #   sudo systemctl status nexus.service
+
+      #   # Verify Nexus is running
+      #   echo "Verifying Nexus is accessible..."
+      #   sleep 10  # Wait for Nexus to fully start
+      #   if curl -s http://localhost:8081 | grep "Nexus Repository Manager" > /dev/null; then
+      #     echo "Nexus Repository Manager installed successfully!"
+      #     echo "Access Nexus at http://<your-server-ip>:8081"
+      #   else
+      #     echo "Nexus service failed to start. Check the logs."
+      #     sudo journalctl -u nexus.service
+      #   fi
+      # SHELL
     end
     
     # Configure the sonarqube VM
@@ -90,137 +107,9 @@ Vagrant.configure("2") do |config|
       sonarqube.vm.provider "virtualbox" do |vb|
         vb.memory = "2048"
       end
-
-      # Provision SonarQube on the sonarqube VM
-      sonarqube.vm.provision "shell", inline: <<-SHELL
-        #!/bin/bash
-  
-        # Exit on any error
-        set -e
-  
-        # Backup and update sysctl.conf
-        cp /etc/sysctl.conf /root/sysctl.conf_backup
-        cat <<EOT > /etc/sysctl.conf
-        vm.max_map_count=262144
-        fs.file-max=65536
-        ulimit -n 65536
-        ulimit -u 4096
-        EOT
-  
-        # Backup and update limits.conf
-        cp /etc/security/limits.conf /root/sec_limit.conf_backup
-        cat <<EOT > /etc/security/limits.conf
-        sonarqube   -   nofile   65536
-        sonarqube   -   nproc    4096
-        EOT
-  
-        # Install and configure Java
-        sudo apt-get update -y
-        sudo apt-get install -y openjdk-11-jdk
-        sudo update-alternatives --config java
-        java -version
-  
-        # Configure PostgreSQL
-        sudo apt-get update
-        wget -q https://www.postgresql.org/media/keys/ACCC4CF8.asc -O - | sudo apt-key add -
-        sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'
-        sudo apt-get install -y postgresql postgresql-contrib
-        sudo systemctl enable postgresql.service
-        sudo systemctl start postgresql.service
-        echo "postgres:admin123" | sudo chpasswd
-        runuser -l postgres -c "createuser sonar"
-        sudo -i -u postgres psql -c "ALTER USER sonar WITH ENCRYPTED PASSWORD 'admin123';"
-        sudo -i -u postgres psql -c "CREATE DATABASE sonarqube OWNER sonar;"
-        sudo -i -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE sonarqube to sonar;"
-        sudo systemctl restart postgresql
-        netstat -tulpena | grep postgres
-  
-        # Install and configure SonarQube
-        sudo mkdir -p /sonarqube/
-        cd /sonarqube/
-        sudo curl -O https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-8.3.0.34182.zip
-        sudo apt-get install -y zip
-        sudo unzip -o sonarqube-8.3.0.34182.zip -d /opt/
-        sudo mv /opt/sonarqube-8.3.0.34182/ /opt/sonarqube
-        sudo groupadd sonar
-        sudo useradd -c "SonarQube - User" -d /opt/sonarqube/ -g sonar sonar
-        sudo chown sonar:sonar /opt/sonarqube/ -R
-        cp /opt/sonarqube/conf/sonar.properties /root/sonar.properties_backup
-        cat <<EOT > /opt/sonarqube/conf/sonar.properties
-        sonar.jdbc.username=sonar
-        sonar.jdbc.password=admin123
-        sonar.jdbc.url=jdbc:postgresql://localhost/sonarqube
-        sonar.web.host=0.0.0.0
-        sonar.web.port=9000
-        sonar.web.javaAdditionalOpts=-server
-        sonar.search.javaOpts=-Xmx512m -Xms512m -XX:+HeapDumpOnOutOfMemoryError
-        sonar.log.level=INFO
-        sonar.path.logs=logs
-        EOT
-  
-        # Create and enable SonarQube service
-        cat <<EOT > /etc/systemd/system/sonarqube.service
-        [Unit]
-        Description=SonarQube service
-        After=syslog.target network.target
-  
-        [Service]
-        Type=forking
-        ExecStart=/opt/sonarqube/bin/linux-x86-64/sonar.sh start
-        ExecStop=/opt/sonarqube/bin/linux-x86-64/sonar.sh stop
-        User=sonar
-        Group=sonar
-        Restart=always
-        LimitNOFILE=65536
-        LimitNPROC=4096
-  
-        [Install]
-        WantedBy=multi-user.target
-        EOT
-  
-        sudo systemctl daemon-reload
-        sudo systemctl enable sonarqube.service
-  
-        # Install and configure Nginx
-        sudo apt-get install -y nginx
-        rm -rf /etc/nginx/sites-enabled/default
-        rm -rf /etc/nginx/sites-available/default
-        cat <<EOT > /etc/nginx/sites-available/sonarqube
-        server {
-            listen      80;
-            server_name sonarqube.groophy.in;
-  
-            access_log  /var/log/nginx/sonar.access.log;
-            error_log   /var/log/nginx/sonar.error.log;
-  
-            proxy_buffers 16 64k;
-            proxy_buffer_size 128k;
-  
-            location / {
-                proxy_pass  http://127.0.0.1:9000;
-                proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
-                proxy_redirect off;
-                
-                proxy_set_header    Host            \$host;
-                proxy_set_header    X-Real-IP       \$remote_addr;
-                proxy_set_header    X-Forwarded-For \$proxy_add_x_forwarded_for;
-                proxy_set_header    X-Forwarded-Proto http;
-            }
-        }
-        EOT
-        sudo ln -s /etc/nginx/sites-available/sonarqube /etc/nginx/sites-enabled/sonarqube
-        sudo systemctl enable nginx.service
-  
-        # Configure firewall
-        sudo ufw allow 80,9000,9001/tcp
-  
-        echo "System reboot in 30 sec"
-        sleep 30
-        sudo reboot
-      SHELL
     end
     
-    # Configure the jenkins VM
+    # # Configure the jenkins VM
     config.vm.define "jenkins" do |jenkins|
       jenkins.vm.box = "ubuntu/focal64"
       jenkins.vm.network "private_network", ip: "192.168.10.16"
